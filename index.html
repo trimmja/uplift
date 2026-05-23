@@ -34,9 +34,20 @@
   <script>
     // Register the service worker so the home-screen webapp pulls
     // fresh code on every launch (and still works offline).
+    // iOS PWAs don't always re-check sw.js automatically, so we force
+    // an update() on each load and reload the page when a new SW
+    // takes control — that swaps in fresh code without a manual refresh.
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
+        navigator.serviceWorker.register("sw.js")
+          .then((reg) => { reg.update(); })
+          .catch(() => {});
+        let reloading = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloading) return;
+          reloading = true;
+          window.location.reload();
+        });
       });
     }
   </script>
