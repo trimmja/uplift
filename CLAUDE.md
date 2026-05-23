@@ -21,6 +21,7 @@ This file is the source of truth for working on Uplift. Read it first every time
 - **Phaser 3** loaded from CDN (`https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js`).
 - **Vanilla JavaScript** — no TypeScript, no npm, no bundler, no build step.
 - **`localStorage`** for all saves.
+- **Service worker (`sw.js`)** for cache management. Network-first: every launch grabs fresh code from GitHub Pages, falls back to cache when offline. Registered from `index.html`. This is what makes the home-screen webapp auto-update — do not delete it.
 - **GitHub Pages** for hosting. **Live at https://trimmja.github.io/uplift/** — auto-deploys on every push to `main` (Pages source = `main` branch, root).
 - Local dev: `start.command` runs `python3 -m http.server 8081`.
 

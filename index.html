@@ -30,5 +30,15 @@
   <script src="scenes/GameOverScene.js"></script>
   <script src="scenes/WinScene.js"></script>
   <script src="main.js"></script>
+
+  <script>
+    // Register the service worker so the home-screen webapp pulls
+    // fresh code on every launch (and still works offline).
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
