@@ -21,14 +21,14 @@ This file is the source of truth for working on Uplift. Read it first every time
 - **Phaser 3** loaded from CDN (`https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js`).
 - **Vanilla JavaScript** — no TypeScript, no npm, no bundler, no build step.
 - **`localStorage`** for all saves.
-- **GitHub Pages** for hosting (not yet deployed).
+- **GitHub Pages** for hosting. **Live at https://trimmja.github.io/uplift/** — auto-deploys on every push to `main` (Pages source = `main` branch, root).
 - Local dev: `start.command` runs `python3 -m http.server 8081`.
 
-## How to run locally
+## How to test changes
 
-Double-click `start.command`. Open `http://localhost:8081` on the Mac, or the printed LAN IP on Shepherd's phone.
+**Default = live URL.** After a change merges to `main`, GitHub Pages rebuilds in ~30–60s. Test at https://trimmja.github.io/uplift/ on the Mac or Shepherd's phone. That is the URL Shepherd actually plays — verify there, not on localhost.
 
-**Never open `index.html` directly.** Browsers block image loads over `file://`.
+**Local dev** (only when you need to iterate before pushing): double-click `start.command`, then open `http://localhost:8081` on the Mac or the printed LAN IP on Shepherd's phone. **Never open `index.html` directly** — browsers block image loads over `file://`.
 
 ## ⚠️ Pre-ship checklist (things to revert before deploying)
 
@@ -135,13 +135,11 @@ uplift/
 
 ## Deploy (GitHub Pages)
 
-Repo doesn't exist yet. When ready:
+Already live. Push to `main` → GitHub Pages rebuilds in ~30–60s.
 
-1. `cd /Users/jacobtrimm/projects/uplift && git init`
-2. `git add . && git commit -m "Initial commit"`
-3. Ask Jacob first, then: `gh repo create trimmja/uplift --public --source=. --remote=origin --push`
-4. Repo Settings → Pages → Deploy from `main` branch, root folder.
-5. Live at `https://trimmja.github.io/uplift/`.
+- Repo: https://github.com/trimmja/uplift
+- Live: https://trimmja.github.io/uplift/
+- Pages source: `main` branch, root folder. HTTPS enforced.
 
 ## Open questions for Shepherd
 

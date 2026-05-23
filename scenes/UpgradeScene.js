@@ -46,15 +46,17 @@ class UpgradeScene extends Phaser.Scene {
       .setDepth(2);
 
     // Row 2: close button (right-aligned, below coins)
+    // Depth must be ABOVE listContainer (depth 2) so scrolled-but-masked
+    // items can never steal a tap meant for CLOSE.
     const closeHit = this.add
       .rectangle(W - 40, 44, 68, 26, 0x222244)
-      .setDepth(2)
+      .setDepth(10)
       .setInteractive({ useHandCursor: true });
     this.add.text(W - 40, 44, "✕  CLOSE", {
       fontFamily: "Arial Black, Arial, sans-serif",
       fontSize: "11px",
       color: "#aaaaaa",
-    }).setOrigin(0.5).setDepth(3);
+    }).setOrigin(0.5).setDepth(11);
 
     closeHit.on("pointerdown", () => this._close());
     closeHit.on("pointerover", () => closeHit.setFillStyle(0x334466));
@@ -77,9 +79,11 @@ class UpgradeScene extends Phaser.Scene {
       const x = i === 0 ? W / 4 : (3 * W) / 4;
       const active = tab === this.activeTab;
 
+      // Same reasoning as the CLOSE button: tab buttons must sit ABOVE the
+      // listContainer (depth 2) so masked items can't intercept tab taps.
       const bg = this.add
         .rectangle(x, TAB_Y + 20, W / 2 - 2, 40, active ? 0x2244bb : 0x1a1a33)
-        .setDepth(2)
+        .setDepth(10)
         .setInteractive({ useHandCursor: true });
 
       const txt = this.add
@@ -89,7 +93,7 @@ class UpgradeScene extends Phaser.Scene {
           color: active ? "#ffffff" : "#666688",
         })
         .setOrigin(0.5)
-        .setDepth(3);
+        .setDepth(11);
 
       // Text itself isn't interactive — the bg rect covers it
       bg.on("pointerdown", () => this._switchTab(tab));
