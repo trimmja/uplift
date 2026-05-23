@@ -219,27 +219,152 @@ class GameScene extends Phaser.Scene {
     const bgColor = eq.background ? BG_COLORS[eq.background] : 0x1a1a1a;
     this.cameras.main.setBackgroundColor(bgColor);
 
-    // Star field for space
-    if (this._starField) { this._starField.destroy(); this._starField = null; }
+    // Space FX: nebula + twinkling colorful stars + shooting stars
+    this._teardownSpaceFX();
     if (eq.background === "bg_space") {
-      const W = this.scale.width;
-      const H = this.scale.height;
-      const gfx = this.add.graphics().setDepth(0);
-      for (let i = 0; i < 60; i++) {
-        const a = Phaser.Math.FloatBetween(0.3, 1.0);
-        const s = Phaser.Math.Between(1, 2);
-        gfx.fillStyle(0xffffff, a);
-        gfx.fillRect(
-          Phaser.Math.Between(0, W),
-          Phaser.Math.Between(0, H),
-          s, s
-        );
-      }
-      this._starField = gfx;
+      this._buildSpaceFX();
     }
 
     // Brick tints
     this._applyBrickTints();
+  }
+
+  _teardownSpaceFX() {
+    if (!this._spaceFX) return;
+    this._spaceFX.tweens.forEach(t => t.remove());
+    if (this._spaceFX.shootingTimer) this._spaceFX.shootingTimer.remove();
+    this._spaceFX.container.destroy(true);
+    this._spaceFX = null;
+  }
+
+  _buildSpaceFX() {
+    const W = this.scale.width;
+    const H = this.scale.height;
+
+    // Cached textures (radial soft dot + huge soft blob for nebula)
+    this._makeTex("fx_star", g => {
+      g.fillStyle(0xffffff, 0.18); g.fillCircle(5, 5, 5);
+      g.fillStyle(0xffffff, 0.45); g.fillCircle(5, 5, 3);
+      g.fillStyle(0xffffff, 1.0);  g.fillCircle(5, 5, 1.3);
+    }, 10, 10);
+    this._makeTex("fx_nebula", g => {
+      for (let r = 100; r > 0; r -= 6) {
+        g.fillStyle(0xffffff, 0.04);
+        g.fillCircle(100, 100, r);
+      }
+    }, 200, 200);
+
+    const container = this.add.container(0, 0).setDepth(-1);
+    const tweens = [];
+
+    // Nebula clouds (additive for glow on dark bg)
+    const NEBULA_COLORS = [0x8844ff, 0xff4499, 0x4477ff, 0x66ddff];
+    const nebulaCount = 3;
+    for (let i = 0; i < nebulaCount; i++) {
+      const neb = this.add.image(
+        Phaser.Math.Between(40, W - 40),
+        Phaser.Math.Between(60, H - 120),
+        "fx_nebula"
+      )
+        .setTint(NEBULA_COLORS[Phaser.Math.Between(0, NEBULA_COLORS.length - 1)])
+        .setAlpha(Phaser.Math.FloatBetween(0.35, 0.55))
+        .setScale(Phaser.Math.FloatBetween(1.0, 1.8))
+        .setBlendMode(Phaser.BlendModes.ADD);
+      container.add(neb);
+      // Gentle alpha breathing
+      tweens.push(this.tweens.add({
+        targets: neb,
+        alpha: neb.alpha * 0.55,
+        duration: Phaser.Math.Between(3500, 5500),
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+        delay: Phaser.Math.Between(0, 2000),
+      }));
+    }
+
+    // Twinkling colorful stars
+    const STAR_COLORS = [
+      0xffffff, 0xffffff, 0xffffff,  // mostly white
+      0xb0d4ff,  // pale blue
+      0xfff5b0,  // pale yellow
+      0xffc0d0,  // pale pink
+    ];
+    for (let i = 0; i < 95; i++) {
+      const star = this.add.image(
+        Phaser.Math.Between(0, W),
+        Phaser.Math.Between(0, H),
+        "fx_star"
+      )
+        .setTint(STAR_COLORS[Phaser.Math.Between(0, STAR_COLORS.length - 1)])
+        .setScale(Phaser.Math.FloatBetween(0.25, 0.95))
+        .setAlpha(Phaser.Math.FloatBetween(0.4, 1.0))
+        .setBlendMode(Phaser.BlendModes.ADD);
+      container.add(star);
+      if (Math.random() < 0.65) {
+        tweens.push(this.tweens.add({
+          targets: star,
+          alpha: Phaser.Math.FloatBetween(0.08, 0.35),
+          duration: Phaser.Math.Between(900, 2400),
+          yoyo: true,
+          repeat: -1,
+          ease: "Sine.easeInOut",
+          delay: Phaser.Math.Between(0, 1800),
+        }));
+      }
+    }
+
+    // Shooting stars: a bright head + particle trail, diagonal across the screen
+    const spawnShooter = () => {
+      const startX = Phaser.Math.Between(-20, W * 0.5);
+      const startY = Phaser.Math.Between(-20, H * 0.25);
+      const endX   = startX + Phaser.Math.Between(W * 0.55, W * 0.95);
+      const endY   = startY + Phaser.Math.Between(H * 0.35, H * 0.65);
+
+      const head = this.add.image(startX, startY, "fx_star")
+        .setScale(1.5)
+        .setTint(0xffffff)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      const emitter = this.add.particles(0, 0, "fx_star", {
+        follow: head,
+        lifespan: 380,
+        frequency: 12,
+        scale: { start: 0.9, end: 0 },
+        alpha: { start: 0.85, end: 0 },
+        tint: 0xffffff,
+        blendMode: Phaser.BlendModes.ADD,
+      });
+      container.add(head);
+      container.add(emitter);
+
+      this.tweens.add({
+        targets: head,
+        x: endX,
+        y: endY,
+        duration: Phaser.Math.Between(550, 850),
+        ease: "Quad.easeIn",
+        onComplete: () => {
+          head.destroy();
+          emitter.emitting = false;
+          this.time.delayedCall(420, () => {
+            if (emitter && emitter.scene) emitter.destroy();
+          });
+        },
+      });
+    };
+
+    const shootingTimer = this.time.addEvent({
+      delay: Phaser.Math.Between(2200, 4500),
+      loop: true,
+      callback: () => {
+        spawnShooter();
+        shootingTimer.delay = Phaser.Math.Between(2200, 5200);
+      },
+    });
+    // First one shortly after entering the scene so it's noticeable
+    this.time.delayedCall(900, spawnShooter);
+
+    this._spaceFX = { container, tweens, shootingTimer };
   }
 
   _applyBrickTints() {
