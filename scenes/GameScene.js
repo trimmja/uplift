@@ -11,7 +11,7 @@ const BRICK_W         = 50;
 const BRICK_H         = 20;
 const BRICK_GAP       = 4;
 const BRICK_TOP       = 86;
-const BRICK_COIN_VALUE = 5;
+const BRICK_COIN_VALUE = 20;
 
 const STARTING_LIVES  = 3;
 
