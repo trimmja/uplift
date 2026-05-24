@@ -9,7 +9,7 @@
 // cache (e.g. removing files); for normal updates it doesn't matter,
 // because network-first already pulls the freshest version.
 
-const CACHE_NAME = "uplift-v2";
+const CACHE_NAME = "uplift-v2.1";
 
 const PRECACHE = [
   "./",
